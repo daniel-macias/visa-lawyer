@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
+
 declare global {
   interface Window {
     watsonAssistantChatOptions?: any;
@@ -11,56 +12,32 @@ declare global {
 }
 
 export default function Home() {
-  const [isOpen, setIsOpen] = useState(false);
-	const [bot, setBot] = useState<0 | 1>(1); // 0 = Copilot, 1 = Watson
-	const scriptInjected = useRef(false);
+  const scriptInjected = useRef(false);
 
-	const loadWatson = () => {
-		if (scriptInjected.current) return;
-		scriptInjected.current = true;
+  const loadWatson = () => {
+    if (scriptInjected.current) return;
+    scriptInjected.current = true;
 
-		window.watsonAssistantChatOptions = {
-			integrationID: process.env.NEXT_PUBLIC_WATSON_INTEGRATION_ID,
-			region: process.env.NEXT_PUBLIC_WATSON_REGION,
-			serviceInstanceID: process.env.NEXT_PUBLIC_WATSON_SERVICE_ID,
-			orchestrateUIAgentExtensions: false,
-			onLoad: async (instance: any) => {
-				await instance.render();
-				window.WatsonAssistantChatInstance = instance;
-			},
-		};
+    window.watsonAssistantChatOptions = {
+      integrationID: process.env.NEXT_PUBLIC_WATSON_INTEGRATION_ID,
+      region: process.env.NEXT_PUBLIC_WATSON_REGION,
+      serviceInstanceID: process.env.NEXT_PUBLIC_WATSON_SERVICE_ID,
+      orchestrateUIAgentExtensions: false,
+      onLoad: async (instance: any) => {
+        await instance.render();
+        window.WatsonAssistantChatInstance = instance;
+      },
+    };
 
-		const script = document.createElement('script');
-		script.src = `https://web-chat.global.assistant.watson.appdomain.cloud/versions/${window.watsonAssistantChatOptions.clientVersion || 'latest'}/WatsonAssistantChatEntry.js`;
-		script.async = true;
-		document.head.appendChild(script);
-	};
+    const script = document.createElement('script');
+    script.src = `https://web-chat.global.assistant.watson.appdomain.cloud/versions/${window.watsonAssistantChatOptions.clientVersion || 'latest'}/WatsonAssistantChatEntry.js`;
+    script.async = true;
+    document.head.appendChild(script);
+  };
 
-	// Manage bot changes
-	useEffect(() => {
-		if (bot === 1 && isOpen) {
-			loadWatson();
-		}
-
-		if (bot === 0 && window.WatsonAssistantChatInstance) {
-			window.WatsonAssistantChatInstance.destroy();
-			delete window.WatsonAssistantChatInstance;
-			scriptInjected.current = false;
-		}
-	}, [bot, isOpen]);
-
-	// Close Watson when toggling off
-	useEffect(() => {
-		if (!isOpen && bot === 1 && window.WatsonAssistantChatInstance) {
-			window.WatsonAssistantChatInstance.destroy();
-			delete window.WatsonAssistantChatInstance;
-			scriptInjected.current = false;
-		}
-
-		if (isOpen && bot === 1) {
-			loadWatson();
-		}
-	}, [isOpen]);
+  useEffect(() => {
+    loadWatson();
+  }, []);
 
   return (
     <main className="relative min-h-screen bg-white text-gray-800">
@@ -97,25 +74,6 @@ export default function Home() {
           We assist with temporary work permits, residency programs, renewals, and naturalization — simplifying the immigration journey.
         </p>
       </section>
-
-      {/* Floating chat toggle button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 bg-blue-600 text-white px-4 py-3 rounded-full shadow-lg hover:bg-blue-700 transition z-50"
-      >
-        {isOpen ? 'Close Chat' : 'Chat with Us'}
-      </button>
-
-      {/* Copilot iframe shown only if bot = 0 */}
-      {isOpen && bot === 0 && (
-        <div className="fixed bottom-20 right-6 w-[360px] h-[500px] bg-white border shadow-xl z-40 rounded overflow-hidden">
-          <iframe
-            src={process.env.NEXT_PUBLIC_COPILOT_IFRAME_URL}
-            title="Immigration Assistant Bot"
-            className="w-full h-full"
-          />
-        </div>
-      )}
     </main>
   );
 }
