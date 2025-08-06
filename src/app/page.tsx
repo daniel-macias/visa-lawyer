@@ -12,7 +12,14 @@ interface WatsonAssistantInstance {
 // Extend window type for Watson Assistant
 declare global {
   interface Window {
-    watsonAssistantChatOptions?: Record<string, unknown>;
+    watsonAssistantChatOptions?: {
+      integrationID: string;
+      region: string;
+      serviceInstanceID: string;
+      orchestrateUIAgentExtensions: boolean;
+      clientVersion?: string;
+      onLoad: (instance: WatsonAssistantInstance) => void;
+    };
     WatsonAssistantChatInstance?: WatsonAssistantInstance;
   }
 }
@@ -25,9 +32,9 @@ export default function Home() {
     scriptInjected.current = true;
 
     window.watsonAssistantChatOptions = {
-      integrationID: process.env.NEXT_PUBLIC_WATSON_INTEGRATION_ID,
-      region: process.env.NEXT_PUBLIC_WATSON_REGION,
-      serviceInstanceID: process.env.NEXT_PUBLIC_WATSON_SERVICE_ID,
+      integrationID: process.env.NEXT_PUBLIC_WATSON_INTEGRATION_ID || '',
+      region: process.env.NEXT_PUBLIC_WATSON_REGION || '',
+      serviceInstanceID: process.env.NEXT_PUBLIC_WATSON_SERVICE_ID || '',
       orchestrateUIAgentExtensions: false,
       onLoad: async (instance: WatsonAssistantInstance) => {
         await instance.render();
@@ -36,7 +43,8 @@ export default function Home() {
     };
 
     const script = document.createElement('script');
-    script.src = `https://web-chat.global.assistant.watson.appdomain.cloud/versions/${(window.watsonAssistantChatOptions as any).clientVersion || 'latest'}/WatsonAssistantChatEntry.js`;
+    const clientVersion = window.watsonAssistantChatOptions.clientVersion || 'latest';
+    script.src = `https://web-chat.global.assistant.watson.appdomain.cloud/versions/${clientVersion}/WatsonAssistantChatEntry.js`;
     script.async = true;
     document.head.appendChild(script);
   };
@@ -66,7 +74,7 @@ export default function Home() {
         <div className="bg-black/60 p-8 rounded max-w-2xl">
           <h2 className="text-4xl font-bold mb-4">Costa Rica&rsquo;s Legal Gateway</h2>
           <p className="text-lg">
-            Our office is based in San José, the nation’s capital. While our clients span the country, from the peaks of Arenal to the coasts of Guanacaste.
+            Our office is based in San José, the nation&apos;s capital. While our clients span the country, from the peaks of Arenal to the coasts of Guanacaste.
           </p>
         </div>
       </section>
@@ -74,7 +82,7 @@ export default function Home() {
       {/* Content */}
       <section className="p-8 max-w-4xl mx-auto space-y-6">
         <p>
-          San José serves as the economic, governmental, and cultural heart of Costa Rica. VisaLegal helps individuals and organizations navigate the country's immigration landscape.
+          San José serves as the economic, governmental, and cultural heart of Costa Rica. VisaLegal helps individuals and organizations navigate the country&apos;s immigration landscape.
         </p>
         <p>
           We assist with temporary work permits, residency programs, renewals, and naturalization — simplifying the immigration journey.
