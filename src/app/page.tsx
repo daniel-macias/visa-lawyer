@@ -2,12 +2,18 @@
 
 import { useEffect, useRef } from 'react';
 
+// Define Watson Assistant instance interface
+interface WatsonAssistantInstance {
+  render: () => Promise<void>;
+  destroy: () => void;
+  updateConfiguration?: (config: Record<string, unknown>) => void;
+}
+
+// Extend window type for Watson Assistant
 declare global {
   interface Window {
-    watsonAssistantChatOptions?: any;
-    WatsonAssistantChatInstance?: {
-      destroy: () => void;
-    };
+    watsonAssistantChatOptions?: Record<string, unknown>;
+    WatsonAssistantChatInstance?: WatsonAssistantInstance;
   }
 }
 
@@ -23,14 +29,14 @@ export default function Home() {
       region: process.env.NEXT_PUBLIC_WATSON_REGION,
       serviceInstanceID: process.env.NEXT_PUBLIC_WATSON_SERVICE_ID,
       orchestrateUIAgentExtensions: false,
-      onLoad: async (instance: any) => {
+      onLoad: async (instance: WatsonAssistantInstance) => {
         await instance.render();
         window.WatsonAssistantChatInstance = instance;
       },
     };
 
     const script = document.createElement('script');
-    script.src = `https://web-chat.global.assistant.watson.appdomain.cloud/versions/${window.watsonAssistantChatOptions.clientVersion || 'latest'}/WatsonAssistantChatEntry.js`;
+    script.src = `https://web-chat.global.assistant.watson.appdomain.cloud/versions/${(window.watsonAssistantChatOptions as any).clientVersion || 'latest'}/WatsonAssistantChatEntry.js`;
     script.async = true;
     document.head.appendChild(script);
   };
@@ -58,7 +64,7 @@ export default function Home() {
         style={{ backgroundImage: "url('/hero.jpg')" }}
       >
         <div className="bg-black/60 p-8 rounded max-w-2xl">
-          <h2 className="text-4xl font-bold mb-4">Costa Rica’s Legal Gateway</h2>
+          <h2 className="text-4xl font-bold mb-4">Costa Rica&rsquo;s Legal Gateway</h2>
           <p className="text-lg">
             Our office is based in San José, the nation’s capital. While our clients span the country, from the peaks of Arenal to the coasts of Guanacaste.
           </p>
